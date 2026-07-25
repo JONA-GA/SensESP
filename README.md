@@ -43,6 +43,12 @@ Don't worry, though.
 The project is newbie-friendly, so you don't need to know much to get started.
 A lot of examples and tutorials are provided, and some related projects also provide ready-to-use firmware for specific use cases.
 
+> **Prefer an AI-assisted path?** The [SensESP Workspace](https://github.com/hatlabs/SensESP-workspace)
+> is a [Claude Code](https://code.claude.com/docs/en/quickstart) environment that
+> guides you from a natural-language description of what you want to build all the
+> way to firmware flashed on your device — no prior embedded experience required.
+> It supports Hat Labs boards (HALMET, HALSER, SH-ESP32, SH-wg) and generic ESP32s.
+
 ## Documentation
 
 To get started, [see the project documentation](https://signalk.org/SensESP/).
