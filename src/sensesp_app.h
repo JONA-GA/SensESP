@@ -162,6 +162,11 @@ class SensESPApp : public SensESPBaseApp {
     this->wifi_client_password_ = wifi_password;
     return this;
   }
+  const SensESPApp* set_wifi_clients(
+      const std::vector<ClientSSIDConfig>& wifi_client_configs) {
+    this->wifi_client_configs_ = wifi_client_configs;
+    return this;
+  }
   const SensESPApp* set_ap_ssid(const String& ssid) {
     this->ap_ssid_ = ssid;
     return this;
@@ -236,9 +241,18 @@ class SensESPApp : public SensESPBaseApp {
       }
     }
     if (!network_provisioner_) {
-      auto wifi = std::make_shared<WiFiProvisioner>(
-          "/System/WiFi Settings", ssid_, wifi_client_password_, ap_ssid_,
-          ap_password_);
+      std::shared_ptr<WiFiProvisioner> wifi;
+      if (!wifi_client_configs_.empty()) {
+        // Multi-network client list provided in code (set_wifi_clients()).
+        wifi = std::make_shared<WiFiProvisioner>("/System/WiFi Settings",
+                                                 wifi_client_configs_, ap_ssid_,
+                                                 ap_password_);
+      } else {
+        // Legacy single-SSID path (set_wifi_client() or defaults).
+        wifi = std::make_shared<WiFiProvisioner>("/System/WiFi Settings", ssid_,
+                                                 wifi_client_password_,
+                                                 ap_ssid_, ap_password_);
+      }
       network_provisioner_ = wifi;
       wifi_provisioner_ = wifi;
     }
@@ -447,6 +461,10 @@ class SensESPApp : public SensESPBaseApp {
 
   String ssid_ = "";
   String wifi_client_password_ = "";
+  // Optional multi-network client list. When non-empty, setup() constructs
+  // the default WiFiProvisioner from this list (failing over between the
+  // entries) instead of the single ssid_/wifi_client_password_ pair.
+  std::vector<ClientSSIDConfig> wifi_client_configs_;
   String sk_server_address_ = "";
   uint16_t sk_server_port_ = 0;
   String ap_ssid_ = "";

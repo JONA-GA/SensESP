@@ -62,6 +62,29 @@ class SensESPAppBuilder : public SensESPBaseAppBuilder {
   }
 
   /**
+   * @brief Set multiple Wi-Fi client (STA) networks for failover.
+   *
+   * The device tries the networks in order, failing over to the next when
+   * one is unreachable (up to WiFiProvisioner::kMaxNumClientConfigs entries;
+   * extras are dropped, and entries with an empty SSID or password are
+   * ignored). This is the in-code equivalent of the multi-network list the
+   * web UI manages.
+   *
+   * Like set_wifi_client(), these values only seed a device with no saved
+   * WiFi configuration; a configuration saved via the web UI always wins.
+   * Use this instead of set_wifi_client() when you need more than one
+   * network defined in code.
+   *
+   * @param wifi_client_configs ordered list of client networks
+   * @return SensESPAppBuilder*
+   */
+  SensESPAppBuilder* set_wifi_clients(
+      const std::vector<ClientSSIDConfig>& wifi_client_configs) {
+    app_->set_wifi_clients(wifi_client_configs);
+    return this;
+  }
+
+  /**
    * @brief Set the wifi access point object SSID and password.
    *
    * To disable the SSID, set both to empty strings.

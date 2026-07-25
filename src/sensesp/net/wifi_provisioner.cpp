@@ -48,6 +48,45 @@ WiFiProvisioner::WiFiProvisioner(const String& config_path,
     client_enabled_ = true;
   }
 
+  init_wifi();
+}
+
+WiFiProvisioner::WiFiProvisioner(
+    const String& config_path,
+    const std::vector<ClientSSIDConfig>& client_configs, const String& ap_ssid,
+    const String& ap_password)
+    : FileSystemSaveable{config_path}, Resettable(0) {
+  bool config_loaded = load();
+
+  if (!config_loaded) {
+    if (ap_ssid != "" && ap_password != "") {
+      this->ap_settings_.enabled_ = true;
+      this->ap_settings_.ssid_ = ap_ssid;
+      this->ap_settings_.password_ = ap_password;
+    } else {
+      this->ap_settings_.enabled_ = false;
+    }
+  }
+
+  if (!config_loaded) {
+    // Seed the preset client list, skipping incomplete entries and honoring
+    // the kMaxNumClientConfigs cap.
+    for (const ClientSSIDConfig& config : client_configs) {
+      if (client_settings_.size() >= kMaxNumClientConfigs) {
+        break;
+      }
+      if (config.ssid_ == "" || config.password_ == "") {
+        continue;
+      }
+      client_settings_.push_back(config);
+    }
+    client_enabled_ = !client_settings_.empty();
+  }
+
+  init_wifi();
+}
+
+void WiFiProvisioner::init_wifi() {
   // Fill in the rest of the client settings array with empty configs
   int num_fill = kMaxNumClientConfigs - client_settings_.size();
   for (int i = 0; i < num_fill; i++) {

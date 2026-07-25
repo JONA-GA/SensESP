@@ -21,6 +21,7 @@ nav_order: 40
 | Method | Description |
 |--------|-------------|
 | `set_wifi_client(String ssid, String password)` | Set WiFi network credentials |
+| `set_wifi_clients(std::vector<ClientSSIDConfig> configs)` | Set multiple WiFi client networks tried in order with failover (up to 3) |
 | `set_wifi_access_point(String ssid, String password)` | Configure the WiFi soft-AP SSID and password |
 | `disable_wifi()` | Disable WiFi entirely (for Ethernet-only setups) |
 | `set_ethernet(config)` | Configure Ethernet provisioner (ESP32-P4 boards) |
@@ -206,6 +207,20 @@ auto app = builder.set_hostname("my-device")
                   ->get_app();
 ```
 
+To define more than one network in code (tried in order with failover, up
+to three), use `set_wifi_clients()` with a list of `ClientSSIDConfig`
+entries instead:
+
+```c++
+SensESPAppBuilder builder;
+auto app = builder.set_hostname("my-device")
+                  ->set_wifi_clients({
+                      {"PrimarySSID", "password1"},
+                      {"BackupSSID", "password2"},
+                  })
+                  ->get_app();
+```
+
 ### Ethernet (ESP32-P4)
 
 Native RMII Ethernet is supported on ESP32-P4 boards with an external
@@ -257,6 +272,8 @@ SensESP v3 includes a built-in WiFi provisioner — no external WiFiManager libr
 The AP mode serves a built-in captive portal with the same web UI used for runtime configuration. Up to 3 WiFi client configurations can be saved; if the current network connection fails, the device cycles through the saved networks automatically.
 
 WiFi configuration is persisted to the device file system and restored on restart. If you hard-code credentials with `set_wifi_client()` in your sketch, those serve as defaults — but they can be overridden by saved configuration through the web UI. This means you can ship a device with initial credentials and let the end user change them later without reflashing.
+
+The same precedence applies to the multi-network `set_wifi_clients()` list shown above: it is the in-code equivalent of the network list the web UI manages, but a configuration saved through the web UI always wins over the hard-coded presets.
 
 ## System info sensors
 

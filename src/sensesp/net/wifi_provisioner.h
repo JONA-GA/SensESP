@@ -176,6 +176,29 @@ class WiFiProvisioner : public FileSystemSaveable,
                   const String& client_password = "",
                   const String& ap_ssid = "",
                   const String& ap_password = "");
+
+  /**
+   * @brief Construct with a preset list of client (STA) networks.
+   *
+   * Seeds up to kMaxNumClientConfigs client configurations that are tried
+   * in order, failing over between them, when the device is not already
+   * associated. Use this instead of the single-SSID constructor to define
+   * more than one network in code (the same list the web UI edits).
+   *
+   * Like the single-SSID constructor, the presets are applied only when no
+   * configuration has been saved to flash yet; a saved (e.g. web-UI-edited)
+   * list always wins and is never overwritten. Client entries with an empty
+   * SSID or password are ignored. Any entries beyond kMaxNumClientConfigs
+   * are dropped.
+   *
+   * @param config_path     flash config path (identifies the saved object)
+   * @param client_configs  ordered list of client networks to try
+   * @param ap_ssid         soft-AP SSID, or "" to leave the AP disabled
+   * @param ap_password     soft-AP password
+   */
+  WiFiProvisioner(const String& config_path,
+                  const std::vector<ClientSSIDConfig>& client_configs,
+                  const String& ap_ssid = "", const String& ap_password = "");
   ~WiFiProvisioner() override;
 
   // -- Resettable --
@@ -214,6 +237,14 @@ class WiFiProvisioner : public FileSystemSaveable,
   int16_t get_wifi_scan_results(std::vector<WiFiNetworkInfo>& ssid_list);
 
  protected:
+  /**
+   * @brief Bring the WiFi interface up from the current ap_settings_ /
+   * client_settings_ state. Shared by both constructors: it pads the client
+   * list to kMaxNumClientConfigs, selects the STA/AP/AP+STA mode, and starts
+   * the access point, client autoconnect, and captive-portal DNS as needed.
+   */
+  void init_wifi();
+
   void start_access_point();
   void start_client_autoconnect();
 
