@@ -6,6 +6,13 @@ the human release guide is [`RELEASE_PROCESS.md`](RELEASE_PROCESS.md). This file
 currently covers the release workflow, where the agent-specific mechanics differ
 enough from the human steps to be worth writing down.
 
+> **Building firmware _with_ SensESP, rather than developing the framework?**
+> The [SensESP Workspace](https://github.com/hatlabs/SensESP-workspace) is a more
+> comprehensive Claude Code environment for that: it bundles the framework and
+> add-on libraries as reference code, per-board hardware docs and pin maps,
+> project scaffolding, and a guided requirements-to-flashing workflow. This
+> `AGENTS.md`, by contrast, is for agents working on the SensESP framework itself.
+
 ## Build and test
 
 This is a library, not an app — `src/*.cpp` has no `setup()`/`loop()`, so a bare
