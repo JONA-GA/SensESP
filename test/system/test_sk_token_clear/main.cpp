@@ -3,31 +3,27 @@
 
 using namespace sensesp;
 
-// A token may only be discarded when the rejecting server is reached over an
-// authenticated (TLS) channel and the upgrade status is 401.
-void test_clears_on_ssl_401() {
-  TEST_ASSERT_TRUE(should_clear_token_on_status(true, 401));
+// A 401 on the upgrade means the server rejected the token: discard it so the
+// next reconnect re-requests access. The decision does not depend on the
+// transport -- a plaintext deployment would otherwise have no recovery route
+// and would loop forever on a stale token.
+void test_clears_on_401() {
+  TEST_ASSERT_TRUE(should_clear_token_on_status(401));
 }
 
-// Any non-401 status over TLS is a transport/TLS/network error: keep the token.
-void test_keeps_token_on_ssl_non_401() {
-  TEST_ASSERT_FALSE(should_clear_token_on_status(true, 0));
-  TEST_ASSERT_FALSE(should_clear_token_on_status(true, 200));
-  TEST_ASSERT_FALSE(should_clear_token_on_status(true, 426));
-  TEST_ASSERT_FALSE(should_clear_token_on_status(true, 500));
-}
-
-// Over plaintext the status is unauthenticated and could be injected by an
-// on-path attacker, so a 401 must never wipe the token.
-void test_keeps_token_on_plaintext_401() {
-  TEST_ASSERT_FALSE(should_clear_token_on_status(false, 401));
+// Any status other than 401 keeps the token. 0 is the "not applicable" value
+// reported by websocket clients that do not expose the handshake status.
+void test_keeps_token_on_non_401() {
+  TEST_ASSERT_FALSE(should_clear_token_on_status(0));
+  TEST_ASSERT_FALSE(should_clear_token_on_status(200));
+  TEST_ASSERT_FALSE(should_clear_token_on_status(426));
+  TEST_ASSERT_FALSE(should_clear_token_on_status(500));
 }
 
 void setup() {
   UNITY_BEGIN();
-  RUN_TEST(test_clears_on_ssl_401);
-  RUN_TEST(test_keeps_token_on_ssl_non_401);
-  RUN_TEST(test_keeps_token_on_plaintext_401);
+  RUN_TEST(test_clears_on_401);
+  RUN_TEST(test_keeps_token_on_non_401);
   UNITY_END();
 }
 
