@@ -24,6 +24,8 @@ If you like SensESP and want to make it even better, please do! It's written in 
 
 - Normally, you should not need to modify `platformio.ini` for your PR. However, if you're adding code that requires a new library dependency, add the dependency both to `library.json` and `platformio.ini`. If you have questions, the best place to discuss SensESP is on [Signal K Discord Server](https://github.com/SignalK/SensESP/discussions), in the `#sensesp` channel.
 
+- Every pull request is reviewed automatically by [CodeRabbit](https://coderabbit.ai/). Address the comments it raises, or explain why they don't apply, before a maintainer picks up the review.
+
 ## Write Comments That Create Interactive Documentation
 
 SensESP is set up to generate Doxygen documentation files from the comments in the .h files, if you follow the appropriate formatting for your comments. So if you create a new .h file, or if you're working on an existing one, please use the following comment format for every Class definition.
