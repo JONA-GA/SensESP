@@ -17,6 +17,9 @@ namespace sensesp {
  */
 class UIButton : public Observable {
  public:
+  /// Longest button name the web UI click endpoint resolves.
+  static constexpr size_t kMaxNameLength = 64;
+
   UIButton(String title, String name, bool must_confirm)
       : title_(title), name_(name), must_confirm_(must_confirm) {}
 
