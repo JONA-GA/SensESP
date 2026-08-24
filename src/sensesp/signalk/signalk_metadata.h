@@ -60,8 +60,8 @@ class SKMetadata {
   float timeout_;
   bool supports_put_;
   String example_;
-  float display_scale_lower_;   ///< NAN = not set
-  float display_scale_upper_;   ///< NAN = not set
+  float display_scale_lower_;   ///< NAN = not set; displayScale requires both bounds
+  float display_scale_upper_;   ///< NAN = not set; displayScale requires both bounds
   std::vector<SKMetadataZone> zones_;
 
   /**

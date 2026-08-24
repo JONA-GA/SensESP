@@ -49,15 +49,11 @@ void SKMetadata::add_entry(const String& sk_path, JsonArray& meta) {
     val["example"] = this->example_;
   }
 
-  if (!std::isnan(this->display_scale_lower_) ||
+  if (!std::isnan(this->display_scale_lower_) &&
       !std::isnan(this->display_scale_upper_)) {
     JsonObject scale = val["displayScale"].to<JsonObject>();
-    if (!std::isnan(this->display_scale_lower_)) {
-      scale["lower"] = this->display_scale_lower_;
-    }
-    if (!std::isnan(this->display_scale_upper_)) {
-      scale["upper"] = this->display_scale_upper_;
-    }
+    scale["lower"] = this->display_scale_lower_;
+    scale["upper"] = this->display_scale_upper_;
   }
 
   if (!this->zones_.empty()) {
