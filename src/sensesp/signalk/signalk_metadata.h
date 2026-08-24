@@ -9,7 +9,8 @@ namespace sensesp {
 
 /**
  * @brief Alarm state values for Signal K Zone metadata.
- * @see https://demo.signalk.org/documentation/_signalk/server-api/ALARM_STATE.html
+ * @see
+ * https://demo.signalk.org/documentation/_signalk/server-api/ALARM_STATE.html
  */
 enum class SKAlarmState {
   kNominal,
@@ -22,16 +23,27 @@ enum class SKAlarmState {
 
 /**
  * @brief Represents a single Signal K alarm zone within metadata.
+ *
+ * A missing bound means the zone is unbounded on that side. Zones are
+ * emitted in the order they were added; consumers differ in how they
+ * resolve overlapping zones, so prefer non-overlapping zones.
+ *
  * @see https://demo.signalk.org/documentation/_signalk/server-api/Zone.html
  */
 struct SKMetadataZone {
-  float lower;    ///< Lower bound of the zone; NAN if not set
-  float upper;    ///< Upper bound of the zone; NAN if not set
+  float lower;  ///< Lower bound of the zone; NAN if not set
+  float upper;  ///< Upper bound of the zone; NAN if not set
   String message;
   SKAlarmState state;
 
-  SKMetadataZone(SKAlarmState state, const String& message,
-                 float lower = NAN, float upper = NAN)
+  /**
+   * @param state Alarm state the zone maps to.
+   * @param message Text shown for values in the zone.
+   * @param lower Lower bound; pass NAN for a zone only bounded from above.
+   * @param upper Upper bound; omit for a zone only bounded from below.
+   */
+  SKMetadataZone(SKAlarmState state, const String& message, float lower,
+                 float upper = NAN)
       : lower{lower}, upper{upper}, message{message}, state{state} {}
 };
 
@@ -59,14 +71,18 @@ class SKMetadata {
   String short_name_;
   float timeout_;
   bool supports_put_;
-  String example_;
-  float display_scale_lower_;   ///< NAN = not set; displayScale requires both bounds
-  float display_scale_upper_;   ///< NAN = not set; displayScale requires both bounds
+  String example_;  ///< Example value for the path, shown by consumers
+  /// NAN = not set; displayScale is emitted only when both bounds are set
+  float display_scale_lower_ = NAN;
+  /// NAN = not set; displayScale is emitted only when both bounds are set
+  float display_scale_upper_ = NAN;
+  /// Alarm zones, emitted in the order they were added
   std::vector<SKMetadataZone> zones_;
 
   /**
-   * @param units The unit of measurement the value represents. This is primarily used
-   * for numeric values. If NO unit needs to be specified, pass an empty string. See
+   * @param units The unit of measurement the value represents. This is
+   * primarily used for numeric values. If NO unit needs to be specified, pass
+   * an empty string. See
    * https://github.com/SignalK/specification/blob/master/schemas/definitions.json#L87
    * @param display_name This is used on or near any display or gauge which
    * shows the data.
@@ -87,11 +103,7 @@ class SKMetadata {
              float timeout = -1.0, bool supports_put = false);
 
   /// Default constructor creates a blank Metadata structure
-  SKMetadata()
-      : timeout_{-1},
-        supports_put_{false},
-        display_scale_lower_{NAN},
-        display_scale_upper_{NAN} {}
+  SKMetadata() : timeout_{-1}, supports_put_{false} {}
 
   /**
    * Adds an entry to the specified meta array that represents this metadata
@@ -102,7 +114,7 @@ class SKMetadata {
    */
   virtual void add_entry(const String& sk_path, JsonArray& meta);
 
- private:
+ protected:
   static const char* alarm_state_to_string(SKAlarmState state);
 };
 
