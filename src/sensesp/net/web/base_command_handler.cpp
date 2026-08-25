@@ -55,10 +55,9 @@ void add_http_reset_handler(std::shared_ptr<HTTPServer>& server) {
         if (!check_origin(req)) {
           return ESP_FAIL;
         }
-        httpd_resp_send(req,
-                        "Resetting device back to factory defaults. "
-                        "You may have to reconfigure the WiFi settings.",
-                        0);
+        httpd_resp_sendstr(req,
+                           "Resetting device back to factory defaults. "
+                           "You may have to reconfigure the WiFi settings.");
         event_loop()->onDelay(500, []() { SensESPBaseApp::get()->reset(); });
         return ESP_OK;
       });
@@ -71,7 +70,7 @@ void add_http_restart_handler(std::shared_ptr<HTTPServer>& server) {
         if (!check_origin(req)) {
           return ESP_FAIL;
         }
-        httpd_resp_send(req, "Restarting device", 0);
+        httpd_resp_sendstr(req, "Restarting device");
         event_loop()->onDelay(500, []() { ESP.restart(); });
         return ESP_OK;
       });
