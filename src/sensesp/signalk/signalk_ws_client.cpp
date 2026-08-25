@@ -417,25 +417,28 @@ void SKWSClient::on_disconnected() {
   this->set_connection_state(SKWSConnectionState::kSKWSDisconnected);
 }
 
+bool should_clear_token_on_status(int handshake_status) {
+  return handshake_status == kHttpUnauthorized;
+}
+
 /**
  * @brief Called when the websocket connection encounters an error.
  *
  * Called in the websocket task context.
  *
  */
-bool should_clear_token_on_status(bool ssl_enabled, int handshake_status) {
-  return ssl_enabled && handshake_status == kHttpUnauthorized;
-}
-
 void SKWSClient::on_error(int handshake_status) {
   this->set_connection_state(SKWSConnectionState::kSKWSDisconnected);
-  if (should_clear_token_on_status(ssl_enabled_, handshake_status)) {
+  if (auth_token_ != NULL_AUTH_TOKEN &&
+      should_clear_token_on_status(handshake_status)) {
     // The server rejected the token on the WebSocket upgrade (e.g. the server
     // was reinstalled, or the device was moved to a different server). Clear it
-    // so the next reconnect requests fresh access, and shorten the backoff so
-    // re-authorization starts promptly instead of after the (possibly grown)
-    // reconnect interval. A non-401 error (transport, TLS, network) leaves the
-    // token intact and simply retries.
+    // so the next reconnect requests fresh access, and reset the backoff so
+    // attempts after the already-scheduled one come at the short interval. A
+    // 401 on a tokenless upgrade cannot mean a stale token: it falls through
+    // to the retry branch, keeping the backoff growing and avoiding a config
+    // flash write per attempt. A non-401 error (transport, TLS, network)
+    // leaves the token intact and simply retries.
     ESP_LOGW(__FILENAME__, "Token rejected (%d), requesting new access",
              handshake_status);
     auth_token_ = NULL_AUTH_TOKEN;
