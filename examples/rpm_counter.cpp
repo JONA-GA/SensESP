@@ -76,7 +76,19 @@ void setup() {
       ->set_description("Frequency of the engine RPM signal")
       ->set_sort_order(1000);
 
-  auto frequency_sk_output = new SKOutput<float>(sk_path, config_path_skpath);
+  // Metadata lets consumers render a gauge with a sensible range and raise
+  // an overspeed alarm. displayScale needs both bounds; keep zones
+  // non-overlapping so every consumer resolves them the same way.
+  auto* metadata = new SKMetadata("Hz", "Engine RPM");
+  metadata->display_scale_lower_ = 0.0f;
+  metadata->display_scale_upper_ = 120.0f;
+  metadata->zones_.push_back(
+      SKMetadataZone(SKAlarmState::kNominal, "Normal range", 10.0f, 100.0f));
+  metadata->zones_.push_back(
+      SKMetadataZone(SKAlarmState::kAlarm, "Overspeed", 110.0f));
+
+  auto frequency_sk_output =
+      new SKOutput<float>(sk_path, config_path_skpath, metadata);
 
   ConfigItem(frequency_sk_output)
       ->set_title("Frequency SK Output Path")

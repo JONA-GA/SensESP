@@ -407,3 +407,7 @@ Here are three different ways to specify the Units for any data you're sending t
 ```
 
 If the only metadata you want to provide is the Units, that's most easily done the first of the three ways above. If you want to provide more metadata than just the Units, the last way above is probably best. It's certainly easier to understand than the middle approach above.
+
+### Display scale, zones, and other metadata fields
+
+Beyond the descriptive fields above, `SKMetadata` supports the remaining fields of the Signal K [meta model](https://signalk.org/specification/1.5.0/doc/data_model_metadata.html): `supportsPut`, `example`, `displayScale`, and `zones`. A `displayScale` gives gauges a fixed range and requires both bounds. `zones` map value ranges to alarm states; a missing zone bound means the zone is unbounded on that side. SensESP emits zones in the order they were added; consumers differ in how they resolve overlapping zones, so prefer non-overlapping zones. See the [`rpm_counter.cpp` example](https://github.com/SignalK/SensESP/blob/main/examples/rpm_counter.cpp) for a display scale and alarm zones in context.

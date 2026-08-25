@@ -2,8 +2,50 @@
 #define SENSESP_SIGNALK_SIGNALK_METADATA_H_
 
 #include <ArduinoJson.h>
+#include <cmath>
+#include <vector>
 
 namespace sensesp {
+
+/**
+ * @brief Alarm state values for Signal K Zone metadata.
+ * @see
+ * https://demo.signalk.org/documentation/_signalk/server-api/ALARM_STATE.html
+ */
+enum class SKAlarmState {
+  kNominal,
+  kNormal,
+  kAlert,
+  kWarn,
+  kAlarm,
+  kEmergency
+};
+
+/**
+ * @brief Represents a single Signal K alarm zone within metadata.
+ *
+ * A missing bound means the zone is unbounded on that side. Zones are
+ * emitted in the order they were added; consumers differ in how they
+ * resolve overlapping zones, so prefer non-overlapping zones.
+ *
+ * @see https://demo.signalk.org/documentation/_signalk/server-api/Zone.html
+ */
+struct SKMetadataZone {
+  float lower;  ///< Lower bound of the zone; NAN if not set
+  float upper;  ///< Upper bound of the zone; NAN if not set
+  String message;
+  SKAlarmState state;
+
+  /**
+   * @param state Alarm state the zone maps to.
+   * @param message Text shown for values in the zone.
+   * @param lower Lower bound; pass NAN for a zone only bounded from above.
+   * @param upper Upper bound; omit for a zone only bounded from below.
+   */
+  SKMetadataZone(SKAlarmState state, const String& message, float lower,
+                 float upper = NAN)
+      : lower{lower}, upper{upper}, message{message}, state{state} {}
+};
 
 /**
  * @brief Holds Signal K meta data that is associated with
@@ -29,10 +71,18 @@ class SKMetadata {
   String short_name_;
   float timeout_;
   bool supports_put_;
+  String example_;  ///< Example value for the path, shown by consumers
+  /// NAN = not set; displayScale is emitted only when both bounds are set
+  float display_scale_lower_ = NAN;
+  /// NAN = not set; displayScale is emitted only when both bounds are set
+  float display_scale_upper_ = NAN;
+  /// Alarm zones, emitted in the order they were added
+  std::vector<SKMetadataZone> zones_;
 
   /**
-   * @param units The unit of measurement the value represents. This is primarily used
-   * for numeric values. If NO unit needs to be specified, pass an empty string. See
+   * @param units The unit of measurement the value represents. This is
+   * primarily used for numeric values. If NO unit needs to be specified, pass
+   * an empty string. See
    * https://github.com/SignalK/specification/blob/master/schemas/definitions.json#L87
    * @param display_name This is used on or near any display or gauge which
    * shows the data.
@@ -63,6 +113,9 @@ class SKMetadata {
    * @param[out] meta The array the metadata entry is supposed to be added to
    */
   virtual void add_entry(const String& sk_path, JsonArray& meta);
+
+ protected:
+  static const char* alarm_state_to_string(SKAlarmState state);
 };
 
 }  // namespace sensesp
