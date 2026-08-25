@@ -31,7 +31,29 @@ class UIButton : public Observable {
     return ui_buttons_;
   }
 
+  /**
+   * @brief Create a button and register it for the web UI.
+   *
+   * Call during setup, before the HTTP server starts serving: the registry
+   * is read by the web UI handlers without locking. A duplicate name
+   * replaces the previously registered button.
+   *
+   * Names up to kMaxNameLength characters appear in the web UI; a longer
+   * name is registered but hidden, since the click endpoint cannot
+   * resolve it.
+   */
   static UIButton* add(String name, String title, bool must_confirm = true) {
+    if (ui_buttons_.count(name) != 0) {
+      ESP_LOGW("UIButton",
+               "Duplicate button name '%s' replaces the earlier button",
+               name.c_str());
+    }
+    if (name.length() > kMaxNameLength) {
+      ESP_LOGW("UIButton",
+               "Button name '%s' exceeds %u characters and is hidden "
+               "from the web UI",
+               name.c_str(), static_cast<unsigned>(kMaxNameLength));
+    }
     auto new_cmd = std::make_shared<UIButton>(title, name, must_confirm);
     ui_buttons_[name] = new_cmd;
 
